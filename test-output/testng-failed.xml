@@ -5,8 +5,11 @@
     <classes>
       <class name="MyTestCases">
         <methods>
+          <include name="UpdateTheData"/>
+          <include name="deleteQuery"/>
           <include name="ReadTheDataInsideTheBrowser"/>
           <include name="mySetup"/>
+          <include name="insertintotable"/>
         </methods>
       </class> <!-- MyTestCases -->
     </classes>
