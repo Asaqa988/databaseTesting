@@ -16,125 +16,128 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-public class MyTestCases {
-
-	Random rand = new Random();
-
-	WebDriver driver = new ChromeDriver();
-
-	Connection con;
-
-	Statement stmt;
-
-	ResultSet rs;
-
-	String firstname;
-
-	String lastName;
-	
-	Date timeStamp = new Date();
+public class MyTestCases extends ParameterClass {
 
 	@BeforeTest
 
 	public void mySetup() throws SQLException {
 
-		driver.get("https://smartbuy-me.com/account/register");
+		TheSetupforDataBaseAndSelenium();
 
-		driver.manage().window().maximize();
+	}
 
-		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
-		con = DriverManager.getConnection("jdbc:mysql://localhost:3306/classicmodels", "root", "abc123");
-	
-		System.out.println(timeStamp);
+	@BeforeMethod
+	public void ThisissomethingThatRunBeforeEachTest() throws SQLException {
+		stmt = con.createStatement();
+
+	}
+
+	@Test(priority = 1)
+
+	public void ReadTheDatafromDataBase() throws SQLException, IOException, InterruptedException {
+
+		rs = stmt.executeQuery(QueryToRead);
+
+		while (rs.next()) {
+
+			firstname = rs.getString("contactFirstName").replace(" ", "_");
+
+			lastName = rs.getString("contactLastName").replace(" ", "_");
+
+			email = firstname + lastName + rand.nextInt(98947) + "@gmail.com";
+
+			address = rs.getString("addressLine1");
+
+			PostalCode = rs.getString("postalCode");
+
+			City = rs.getString("city");
+
+		}
+
 	}
 
 	@Test(priority = 2)
 
+	public void fillTheDatainTheSignUpPage() throws InterruptedException, IOException {
+		WebElement firstNameInput = driver.findElement(By.id("AccountFrm_firstname"));
+		WebElement lastNameInput = driver.findElement(By.id("AccountFrm_lastname"));
+		WebElement EmailInput = driver.findElement(By.id("AccountFrm_email"));
+		WebElement Address = driver.findElement(By.id("AccountFrm_address_1"));
+		WebElement CountrySelect = driver.findElement(By.id("AccountFrm_country_id"));
+		WebElement StateSelect = driver.findElement(By.id("AccountFrm_zone_id"));
+		WebElement PostalCodeInput = driver.findElement(By.id("AccountFrm_postcode"));
+		WebElement LoginNameInput = driver.findElement(By.id("AccountFrm_loginname"));
+		WebElement PasswordInput = driver.findElement(By.id("AccountFrm_password"));
+		WebElement PasswordConfirmInput = driver.findElement(By.id("AccountFrm_confirm"));
+		WebElement CityInput = driver.findElement(By.id("AccountFrm_city"));
+		WebElement AcceptTermsAndConditions = driver.findElement(By.id("AccountFrm_agree"));
+
+		WebElement CountinueButton = driver.findElement(By.cssSelector(".btn.btn-orange.pull-right.lock-on-click"));
+		firstNameInput.sendKeys(firstname);
+		lastNameInput.sendKeys(lastName);
+		EmailInput.sendKeys(email);
+		Address.sendKeys(address);
+		
+		ScrollAndScreenShot(100,"1"); 
+
+		// select to country
+		Select mySelectorForThecountry = new Select(CountrySelect);
+		mySelectorForThecountry.selectByIndex(3);
+		Thread.sleep(2000);
+
+		// select to state
+		Select mySelectorForTheState = new Select(StateSelect);
+		mySelectorForTheState.selectByIndex(6);
+
+		PostalCodeInput.sendKeys(PostalCode);
+		CityInput.sendKeys(City);
+		LoginName = firstname + lastName+randomLoginNumber3;
+		
+		ScrollAndScreenShot(600,"2"); 
+
+
+		LoginNameInput.sendKeys(LoginName);
+		PasswordInput.sendKeys(password);
+		PasswordConfirmInput.sendKeys(password);
+		AcceptTermsAndConditions.click();
+		
+		ScrollAndScreenShot(1000,"3"); 
+
+		CountinueButton.click();
+		Thread.sleep(2000);
+
+		Boolean ActualValue = driver.getPageSource().contains("Welcome back");
+
+		Assert.assertEquals(ActualValue, expectedValueForThecreatedAccount);
+		
+	}
+
+	@Test(priority = 2, enabled = false)
+
+	public void insertintotable() throws SQLException {
+
+		stmt.executeUpdate(QuerytoInsert);
+	}
+
+	@Test(priority = 3, enabled = false)
+
 	public void UpdateTheData() throws SQLException, InterruptedException {
 
-		String Query = "update customers set customerName='automation course' where customerNumber = 9999";
-
-		stmt = con.createStatement();
-
-		int rowUpdated = stmt.executeUpdate(Query);
-
-		System.out.println(rowUpdated);
-
-		Thread.sleep(2000);
-	}
-
-	@Test(priority = 3)
-
-	public void ReadTheDataInsideTheBrowser() throws SQLException, IOException {
-
-		String[] customerNumbers = { "112", "114", "119", "121" };
-
-		int randomCustomerNumber = rand.nextInt(customerNumbers.length);
-		String theSelectedCustomer = customerNumbers[randomCustomerNumber];
-		String Query = "select * from customers where customerNumber =9999";
-
-		stmt = con.createStatement();
-		rs = stmt.executeQuery(Query);
-
-		System.out.println(rs);
-
-		while (rs.next()) {
-
-			firstname = rs.getString("customerName");
-			lastName = rs.getString("contactLastName");
-
-			System.out.println(firstname);
-
-		}
-
-		WebElement theFirstName = driver.findElement(By.id("customer[first_name]"));
-
-		theFirstName.sendKeys(firstname);
-
-		WebElement theLastName = driver.findElement(By.id("customer[last_name]"));
-
-		theLastName.sendKeys(lastName);
-		
-		takeTheScreenshotPlease();
-		
-		
+		int rowUpdated = stmt.executeUpdate(QueryToUpdate);
 
 	}
-	
-	@Test(priority = 1)
-	
-	public void insertintotable() throws SQLException {
-		
-		String Query = "INSERT INTO customers (customerNumber, customerName, contactLastName, contactFirstName, phone, addressLine1, addressLine2, city, state, postalCode, country, salesRepEmployeeNumber, creditLimit) VALUES (9999, 'mahmoud', 'Schmitt', 'Carine', '40.32.2555', '54, rue Royale', NULL, 'Nantes', NULL, '44000', 'France', 1370, 21000);";
 
-		stmt = con.createStatement();
+	@Test(priority = 4, enabled = false)
 
-		int rowUpdated = stmt.executeUpdate(Query);
-	}
-	
-	@Test(priority = 4)
-	
 	public void deleteQuery() throws SQLException {
-		
-		String Query = "delete from customers where customerNumber = 9999";
 
-		stmt = con.createStatement();
-
-		int rowUpdated = stmt.executeUpdate(Query);
-	}
-	
-	
-	public void takeTheScreenshotPlease() throws IOException {
-	TakesScreenshot ts = (TakesScreenshot) driver ; 
-		
-		File myScreenshotFile = ts.getScreenshotAs(OutputType.FILE);
-		
-		String filename = timeStamp.toString().replace(":", "-"); 
-		
-		FileUtils.copyFile(myScreenshotFile, new File("src/screenshot/"+filename+".jpg"));
+		int rowUpdated = stmt.executeUpdate(QueryToDelete);
 	}
 
 }

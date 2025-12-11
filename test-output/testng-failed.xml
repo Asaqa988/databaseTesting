@@ -5,11 +5,9 @@
     <classes>
       <class name="MyTestCases">
         <methods>
-          <include name="UpdateTheData"/>
-          <include name="deleteQuery"/>
-          <include name="ReadTheDataInsideTheBrowser"/>
+          <include name="ThisissomethingThatRunBeforeEachTest"/>
+          <include name="fillTheDatainTheSignUpPage"/>
           <include name="mySetup"/>
-          <include name="insertintotable"/>
         </methods>
       </class> <!-- MyTestCases -->
     </classes>
